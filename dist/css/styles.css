@@ -1,0 +1,30 @@
+html {
+
+}
+
+body {
+  background-color: #2f2f2f;
+}
+
+canvas {
+  border: 2px solid #b9b9b9;
+}
+
+.hidden {
+  display: none;
+}
+
+.display {
+  margin: 0 auto;
+}
+
+.invisible {
+  opacity: 0;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+}

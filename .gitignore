@@ -1,0 +1,5 @@
+node_modules/
+yarn-error.log
+.git/
+dist/bundle.js
+npm-debug.log
