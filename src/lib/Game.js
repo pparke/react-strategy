@@ -25,7 +25,7 @@ export default class Game extends EventEmitter {
 
     this.imagesLoaded = false;
     this.tileatlas = new Atlas();
-    this.tileatlas.loadImage(tilesetImage)
+    this.tileatlas.loadImage('vase', tilesetImage)
     .then(() => this.loadImages())
     .then(() => this.imagesLoaded = true)
     .then(() => this.emit('loading:complete'))
@@ -94,7 +94,8 @@ export default class Game extends EventEmitter {
   }
 
   loadImages() {
-    this.tileatlas.add('vase', { x: 0, y: 0, w: 32, h: 32 });
+    this.tileatlas.loadAtlas('data/vase.json', 'vase');
+    //this.tileatlas.add('vase', { x: 0, y: 0, w: 32, h: 32, tileset: 'vase' });
   }
 
   /**
@@ -133,14 +134,14 @@ export default class Game extends EventEmitter {
    * @param {number} y - the y coordinate (in screen space) to draw the tile
    */
   drawImage(tileset, tileKey, x, y) {
-    const tile = tileset.tiles.get(tileKey);
+    const tile = tileset.getTile(tileKey);
     if (tile === undefined) {
       throw new Error(`Tile not found for key: ${tileKey}`);
     }
     // Nine arguments: the element, source (x,y) coordinates, source width and
     // height (for cropping), destination (x,y) coordinates, and destination width
     // and height (resize).
-    this.ctx.drawImage( tileset.img,
+    this.ctx.drawImage( tile.tileset,
                         tile.x,
                         tile.y,
                         tile.w,

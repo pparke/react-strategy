@@ -30,7 +30,7 @@ const HEIGHT = 400;
 const game = new Game({
   width: WIDTH,
   height: HEIGHT,
-  tilesetImage: 'img/vase.png'
+  tilesetImage: '/img/vase.png'
 });
 
 /**
