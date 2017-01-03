@@ -26,46 +26,47 @@ store.dispatch(setState(initialState));
 const WIDTH = 500;
 const HEIGHT = 400;
 
-// setup the game object
-const game = new Game({
-  width: WIDTH,
-  height: HEIGHT,
-  tilesetImage: '/img/vase.png'
-});
 
-/**
- * Game Events
- * setup event listeners so the UI can react to the game state
- * by dispatching actions to the store
- */
-game.on('paused', () => {
-});
-
-game.on('unpaused', () => {
-});
-
-game.on('ready', () => {
-  // game starts paused, toggle to start
-  game.emit('pause');
-});
 
 /**
  * Bound Helpers
  * These functions bind context or store actions
  * so that they can be passed into components
  */
-function setGameCtx(ctx) {
-  game.setCtx(ctx);
+function setupGame(ctx) {
+  // setup the game object
+  const game = new Game({
+    width: WIDTH,
+    height: HEIGHT,
+    tilesetImage: '/img/vase.png',
+    ctx
+  });
+
+  /**
+   * Game Events
+   * setup event listeners so the UI can react to the game state
+   * by dispatching actions to the store
+   */
+  game.on('paused', () => {
+  });
+
+  game.on('unpaused', () => {
+  });
+
+  game.on('ready', () => {
+    // game starts paused, toggle to start
+    game.emit('pause');
+  });
+  // setup behaviour for when the game window isn't visible
+  onHidden(() => game.emit('hidden'), () => game.emit('visible'));
 }
 
-// setup behaviour for when the game window isn't visible
-onHidden(() => game.emit('pause'));
 
 // render the app to the root element
 ReactDOM.render(
   <Provider store={store}>
     <App>
-      <DisplayContainer width={ 500 } height={ 400 } canvasDidMount={ setGameCtx } />,
+      <DisplayContainer width={ 500 } height={ 400 } canvasDidMount={ setupGame } />,
     </App>
   </Provider>,
   document.getElementById('app')

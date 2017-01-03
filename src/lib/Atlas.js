@@ -14,6 +14,7 @@ export default class Atlas {
    * @param {string} file - the path to the file
    */
   loadImage(name, file) {
+    console.log('loading image', name)
     return new Promise((resolve, reject) => {
       this.img[name] = new Image();
       const img = this.img[name];
@@ -32,6 +33,7 @@ export default class Atlas {
    * multiple files for one image.
    */
   loadAtlas(file, imgName) {
+    console.log('loading atlas', imgName)
     return fetch(encodeURI(file))
     .then(response => response.json())
     .then(atlas => {

@@ -22,3 +22,14 @@ export function onHidden(hidden, visible) {
     }
   });
 }
+
+export function chain(...args) {
+  // if args are strings get the corresponding methods
+  if (args.every(a => 'string' === typeof a)) {
+    args = args.map(a => this[a]);
+  }
+
+  return args.reduce((result, arg) => {
+    arg.call(this, result);
+  }, undefined);
+}
