@@ -16,6 +16,7 @@ export default class Game extends EventEmitter {
 
     this.time = 0;
     this.fps = 60;
+    this.lastUpdate = 0;
     this.paused = true;
     this.hidden = false;
 
@@ -58,10 +59,10 @@ export default class Game extends EventEmitter {
     Entity.addComponent(ent, 'body');
     Entity.addComponent(ent, 'velocity');
 
-    ent.position.x = this.width*Math.random();
-    ent.position.y = this.height*Math.random();
-    ent.velocity.x = Math.random()*2 - 1;
-    ent.velocity.y = Math.random()*2 - 1;
+    ent.position.x = this.width * Math.random();
+    ent.position.y = this.height * Math.random();
+    ent.velocity.x = Math.random() * (2 - 1);
+    ent.velocity.y = Math.random() * (2 - 1);
     ent.size.width = 16;
     ent.size.height = 16;
     ent.image.key = 'vase';
@@ -123,17 +124,23 @@ export default class Game extends EventEmitter {
       return;
     }
 
+    // frame timing
     const now = new Date().getTime();
     const dt = now - this.time;
     const rate = 1000/this.fps;
-    this.currentFPS = Math.floor(1000/dt);
 
-    if (dt > rate) {
+    // fps calculation
+    const ut = now - this.lastUpdate
+    const currentFPS = Math.floor(1000/ut);
+
+    if (/*dt > rate*/ true) {
       this.time = now - (this.time % rate);
       this.update();
-      this.ctx.font = '22px consola';
-      this.ctx.fillStyle = '#aaaaff';
-      this.ctx.fillText(this.currentFPS, 10, 30);
+    }
+    // update the FPS counter
+    if (ut > 500) {
+      this.lastUpdate = now;
+      this.emit('FPS', Math.floor(dt));
     }
     window.requestAnimationFrame(this.tick.bind(this));
   }

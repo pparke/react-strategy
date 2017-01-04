@@ -7,26 +7,23 @@ import { onHidden } from './lib/util';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 import reducer from './reducer';
-import { setState } from './actions';
+import { setState, setMessage } from './actions';
 import { fromJS, List, Map } from 'immutable';
 
 const store = createStore(reducer);
+const WIDTH = 500;
+const HEIGHT = 400;
 
 /**
  * The initial state to populate the store with
  * @type {object}
  */
 const initialState = fromJS({
-
+  messages: []
 });
 
 // set the intial state of the store
 store.dispatch(setState(initialState));
-
-const WIDTH = 500;
-const HEIGHT = 400;
-
-
 
 /**
  * Bound Helpers
@@ -57,6 +54,16 @@ function setupGame(ctx) {
     // game starts paused, toggle to start
     game.emit('pause');
   });
+
+  game.on('FPS', (fps) => {
+    store.dispatch(setMessage(
+      fromJS({
+        id: 'fps',
+        text: fps
+      })
+    ));
+  });
+
   // setup behaviour for when the game window isn't visible
   onHidden(() => game.emit('hidden'), () => game.emit('visible'));
 }
