@@ -1,5 +1,6 @@
 import EventEmitter from 'events';
 import mousetrap from '../mousetrap';
+import Entity from '../Entity';
 
 export default class Input extends EventEmitter {
   constructor(ctx) {
@@ -10,6 +11,8 @@ export default class Input extends EventEmitter {
 
     // keys
     this.keys = {};
+
+    this.required = ['controller', 'velocity'];
   }
 
   setup(ctx) {
@@ -21,6 +24,7 @@ export default class Input extends EventEmitter {
     mousetrap.bind('up', () => { this.keyUp('up') }, 'keyup');
     mousetrap.bind('down', () => { this.keyDown('down'); this.keyUp('up'); }, 'keydown');
     mousetrap.bind('down', () => { this.keyUp('down') }, 'keyup');
+    mousetrap.bind('p', () => { this.emit('pause') });
     //mousetrap.bind('p', this.togglePause.bind(this) );
     const canvas = this.ctx.canvas;
     canvas.addEventListener('touchstart', this.onTouchStart.bind(this), false);
@@ -39,8 +43,24 @@ export default class Input extends EventEmitter {
     this.keys[k] = false;
   }
 
-  update() {
-
+  update(entities) {
+    for (const key in entities) {
+      const ent = entities[key];
+      if (Entity.hasComponents(ent, ['controller', 'velocity'])) {
+        if (this.keys['right']) {
+          ent.velocity.x += 0.01;
+        }
+        else if (this.keys['left']) {
+          ent.velocity.x -= 0.01;
+        }
+        if (this.keys['up']) {
+          ent.velocity.y -= 0.01;
+        }
+        else if (this.keys['down']) {
+          ent.velocity.y += 0.01;
+        }
+      }
+    }
   }
 
   onTouchStart(e) {

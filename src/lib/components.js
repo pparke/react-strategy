@@ -25,3 +25,7 @@ export const body = {
   acceleration: 1,
   deltaMax: 1
 }
+
+export const controller = {
+
+}

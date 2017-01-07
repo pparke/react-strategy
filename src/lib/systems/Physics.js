@@ -7,7 +7,7 @@ export default class Physics extends EventEmitter {
     this.name = 'Physics';
     this.ready = false;
     this.bounds = bounds;
-    console.log(this.bounds)
+    this.required = ['position', 'size', 'velocity', 'body'];
   }
 
   setup() {

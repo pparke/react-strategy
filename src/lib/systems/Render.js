@@ -2,27 +2,21 @@ import EventEmitter from 'events';
 import Atlas from '../Atlas';
 
 export default class Render extends EventEmitter {
-  constructor(ctx) {
+  constructor(ctx, atlas) {
     super();
     this.ctx = ctx;
+    this.atlas = atlas;
     this.width = ctx.canvas.width;
     this.height = ctx.canvas.height;
-    this.atlas = new Atlas();
     this.ready = false;
     this.name = 'Render';
+    this.required = ['image', 'position', 'size'];
+    this.entities = [];
   }
 
-  async setup() {
-    await this.loadImages();
+  setup() {
     this.ready = true;
     this.emit('go', this.name);
-  }
-
-  async loadImages(images) {
-    await this.atlas.loadImage('vase', 'img/vase.png');
-    await this.atlas.loadImage('strategy', 'img/tileset.png');
-    await this.atlas.loadAtlas('data/vase.json', 'vase');
-    await this.atlas.loadAtlas('data/strategy.json', 'strategy');
   }
 
   /**
@@ -32,8 +26,8 @@ export default class Render extends EventEmitter {
    * @param {number} x - the x coordinate (in screen space) to draw the tile
    * @param {number} y - the y coordinate (in screen space) to draw the tile
    */
-  drawImage(atlas, tileKey, x, y) {
-    const tile = atlas.getTile(tileKey);
+  drawImage(tileKey, x, y) {
+    const tile = this.atlas.getTile(tileKey);
     if (tile === undefined) {
       throw new Error(`Tile not found for key: ${tileKey}`);
     }
@@ -54,11 +48,9 @@ export default class Render extends EventEmitter {
 
   update(entities) {
     this.ctx.clearRect(0, 0, this.width, this.height);
-    for (const key in entities) {
-      const ent = entities[key];
-      if (ent['image'] && ent['position'] && ent['size']) {
-        this.drawImage(this.atlas, ent.image.key, ent.position.x - ent.size.width/2, ent.position.y - ent.size.height/2);
-      }
+    for (const ent of Object.values(entities)) {
+      const { image: { key }, position: { x, y }, size: { width, height } } = ent;
+      this.drawImage(key, x - width/2, y - height/2);
     }
   }
 

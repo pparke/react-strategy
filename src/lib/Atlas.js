@@ -1,10 +1,26 @@
+import EventEmitter from 'events';
 
-
-export default class Atlas {
+export default class Atlas extends EventEmitter {
   constructor() {
+    super();
     this.img = {};
     this.tiles = new Map();
     this.tileIndex = [];
+  }
+
+  async loadAll(data) {
+    for (const dat of data) {
+      switch (dat.type) {
+        case 'atlas':
+          await this.loadAtlas(dat.name, dat.file);
+          break;
+        case 'image':
+          await this.loadImage(dat.name, dat.file);
+          break;
+      }
+    }
+
+    this.emit('loadAll:done');
   }
 
   /**
@@ -32,19 +48,21 @@ export default class Atlas {
    * the tile.  This way tile data can be loaded from
    * multiple files for one image.
    */
-  loadAtlas(file, imgName) {
-    console.log('loading atlas', imgName)
-    return fetch(encodeURI(file))
-    .then(response => response.json())
-    .then(atlas => {
-      Object.keys(atlas).forEach(key => {
-        const tile = atlas[key];
-        tile.tileset = this.img[imgName] || tile.tileset;
-        this.add(key, tile);
-      });
-    })
-    .catch(err => {
+  async loadAtlas(imgName, file) {
+    console.log('loading atlas', imgName);
+    let response;
+    try {
+      response = await fetch(encodeURI(file));
+    } catch (err) {
       throw new Error(`Couldn't load JSON from ${file}\n${err.message}`);
+    }
+
+    const atlas = await response.json();
+
+    Object.keys(atlas).forEach(key => {
+      const tile = atlas[key];
+      tile.tileset = this.img[imgName] || tile.tileset;
+      this.add(key, tile);
     });
   }
 

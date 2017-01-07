@@ -4,7 +4,8 @@ import Render from './systems/Render';
 import Physics from './systems/Physics';
 import Input from './systems/Input';
 import Entity from './Entity';
-
+import Atlas from './Atlas';
+import * as components from './components';
 
 export default class Game extends EventEmitter {
   constructor({ width, height, ctx, tilesetImage } = {}) {
@@ -22,33 +23,88 @@ export default class Game extends EventEmitter {
 
     this.sound = new Audio();
 
+    this.atlas = new Atlas();
+
+    this.atlas.on('loadAll:done', this.setupSystems.bind(this));
+    this.on('systems:done', this.setupEntities.bind(this));
+    this.on('entities:done', this.setupEvents.bind(this));
+    this.atlas.loadAll([
+      {
+        type: 'image',
+        name: 'vase',
+        file: 'img/vase.png'
+      },
+      {
+        type: 'image',
+        name: 'strategy',
+        file: 'img/tileset.png'
+      },
+      {
+        type: 'atlas',
+        name: 'vase',
+        file: 'data/vase.json'
+      },
+      {
+        type: 'atlas',
+        name: 'strategy',
+        file: 'data/strategy.json'
+      }
+    ]);
+
+    this.systems = {};
+    this.entities = {};
+
+    this.emit('init:complete');
+  }
+
+  setupSystems() {
     this.systems = {
-      render: new Render(ctx),
-      physics: new Physics({ bounds: { x: 0, y: 0, width, height } }),
-      input: new Input(ctx)
-    }
+      render: new Render(this.ctx, this.atlas),
+      physics: new Physics({ bounds: { x: 0, y: 0, width: this.width, height: this.height } }),
+      input: new Input(this.ctx)
+    };
 
     for (let key in this.systems) {
       this.systems[key].once('go', this.checkReady.bind(this));
       this.systems[key].setup();
     }
-
-    this.entities = {};
-
-    // listen for events
-    this.on('pause', this.togglePause.bind(this));
-    this.on('hidden', () => this.hidden = true);
-    this.on('visible', () => this.hidden = false);
-
-    this.emit('init:complete');
-
-    this.setup();
   }
 
-  setup() {
+  checkReady(key) {
+    console.log(`${key} is go`);
+    const systems = Object.values(this.systems);
+    if (systems.every(system => system.ready)) {
+      console.log('all systems go');
+      this.emit('systems:done');
+    }
+  }
+
+  setupEntities() {
     for (let i = 0; i < 100; i++) {
       this.createVase();
     }
+
+    this.emit('entities:done');
+  }
+
+  setupEvents() {
+    this.systems.input.on('pause', this.togglePause.bind(this));
+    this.on('pause', this.togglePause.bind(this));
+    this.on('hidden', () => this.hidden = true);
+    this.on('visible', () => this.hidden = false);
+  }
+
+  async load() {
+    await this.atlas.loadImage('vase', 'img/vase.png');
+    await this.atlas.loadImage('strategy', 'img/tileset.png');
+    await this.atlas.loadAtlas('data/vase.json', 'vase');
+    await this.atlas.loadAtlas('data/strategy.json', 'strategy');
+  }
+
+  addEntity() {
+    const entity = new Entity();
+    this.entities[entity.id] = entity;
+    return entity;
   }
 
   createVase() {
@@ -58,6 +114,7 @@ export default class Game extends EventEmitter {
     Entity.addComponent(ent, 'size');
     Entity.addComponent(ent, 'body');
     Entity.addComponent(ent, 'velocity');
+    Entity.addComponent(ent, 'controller');
 
     ent.position.x = this.width * Math.random();
     ent.position.y = this.height * Math.random();
@@ -72,14 +129,6 @@ export default class Game extends EventEmitter {
     })
   }
 
-  checkReady(key) {
-    console.log(`${key} is go`);
-    const systems = Object.values(this.systems);
-    if (systems.every(system => system.ready)) {
-      console.log('all systems go');
-      this.emit('ready');
-    }
-  }
 
   /**
    * Pause the game, this stops the tick method from scheduling
@@ -89,6 +138,7 @@ export default class Game extends EventEmitter {
    * @event Game#unpaused
    */
   togglePause() {
+    console.log('toggling pause')
     this.paused = !this.paused;
     if (this.paused) {
       this.emit('paused');
@@ -98,13 +148,6 @@ export default class Game extends EventEmitter {
     }
     this.tick();
   }
-
-  addEntity() {
-    const entity = new Entity();
-    this.entities[entity.id] = entity;
-    return entity;
-  }
-
 
 
   /**
@@ -133,7 +176,7 @@ export default class Game extends EventEmitter {
     const ut = now - this.lastUpdate
     const currentFPS = Math.floor(1000/ut);
 
-    if (/*dt > rate*/ true) {
+    if (true /*dt > rate*/) {
       this.time = now - (this.time % rate);
       this.update();
     }
