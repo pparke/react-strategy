@@ -1,7 +1,8 @@
 import Tilemap from './Tilemap';
 
 export default class View {
-  constructor(atlas, tile, map, viewport) {
+  constructor(ctx, atlas, tile, map, viewport) {
+    this.ctx = ctx;
     this.atlas = atlas;
     this.tileWidth = tile.width;
     this.tileHeight = tile.height;
@@ -14,6 +15,10 @@ export default class View {
     this.viewport.canvas.width = viewport.width;
     this.viewport.canvas.height = viewport.height;
     this.viewport.ctx = this.viewport.canvas.getContext('2d');
+    this.position = {
+      x: map.width/2,
+      y: map.width/2
+    }
 
     this._layerProto = {
       name: '',
@@ -26,12 +31,13 @@ export default class View {
   }
 
   createLayer(name, zIndex, tileIds, atlasKey) {
-    const layer = Object.assign(this._layerProto, { name, zIndex, tileIds, atlasKey });
+    const layer = Object.assign({}, this._layerProto, { name, zIndex, tileIds, atlasKey });
     layer.canvas = document.createElement('canvas');
     layer.canvas.width = this.mapWidth * this.tileWidth;
     layer.canvas.height = this.mapHeight * this.tileHeight;
     layer.ctx = layer.canvas.getContext('2d');
     this.tilemap.createLayer(name);
+    this.layers[name] = layer;
   }
 
   toScreenCoords(offset) {
@@ -45,15 +51,21 @@ export default class View {
    * layer that underpins it
    */
   updateLayer(layer) {
+    if ('string' === typeof layer) {
+      layer = this.layers[layer];
+    }
+
     const height = this.tilemap.numTilesY;
     const width = this.tilemap.numTilesX;
 
     for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
+      for (let x = 0; x < width; x ++) {
+        const tileX = x * this.tileWidth;
+        const tileY = y * this.tileHeight;
         const tileIndex = this.tilemap.getAtCoords(layer.name, x, y);
         const tileName = layer.tileIds[tileIndex];
         const tile = this.atlas.getTile(tileName);
-        this.drawImage(layer, tile, x, y);
+        this.drawImage(layer, tile, tileX, tileY);
       }
     }
   }
@@ -63,14 +75,21 @@ export default class View {
     const x = this.position.x - (width / 2);
     const y = this.position.y - (height / 2);
 
+    layers = layers.map(l => this.layers[l]);
+
     // sort the layers by z-order, lowest first
-    const sortedLayers = layer.sort((a, b) => Math.sign(a.zIndex - b.zIndex));
+    const sortedLayers = layers.sort((a, b) => Math.sign(a.zIndex - b.zIndex));
     // get the image data described by x, y, width, height from each layer
     // and draw it to the viewport
-    sortedLayers.forEach(layer => {
-      const imageData = layer.ctx.getImageData(x, y, width, height);
-      this.viewport.ctx.putImageData(imageData, 0, 0);
+    Object.values(sortedLayers).forEach(layer => {
+      //const imageData = layer.ctx.getImageData(x, y, width, height);
+      //this.viewport.ctx.putImageData(imageData, 0, 0);
+      this.viewport.ctx.drawImage(layer.canvas, 0, 0);
     });
+  }
+
+  render() {
+    this.ctx.drawImage(this.viewport.canvas, 0, 0);
   }
 
   /**

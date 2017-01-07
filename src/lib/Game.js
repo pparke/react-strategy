@@ -5,6 +5,7 @@ import Physics from './systems/Physics';
 import Input from './systems/Input';
 import Entity from './Entity';
 import Atlas from './Atlas';
+import View from './View';
 import * as components from './components';
 
 export default class Game extends EventEmitter {
@@ -22,12 +23,13 @@ export default class Game extends EventEmitter {
     this.hidden = false;
 
     this.sound = new Audio();
-
     this.atlas = new Atlas();
+    this.view = new View(this.ctx, this.atlas, { width: 16, height: 16 }, { width: 100, height: 100 }, { width, height });
 
     this.atlas.on('loadAll:done', this.setupSystems.bind(this));
     this.on('systems:done', this.setupEntities.bind(this));
     this.on('entities:done', this.setupEvents.bind(this));
+    this.on('events:done', this.setupMap.bind(this));
     this.atlas.loadAll([
       {
         type: 'image',
@@ -92,13 +94,22 @@ export default class Game extends EventEmitter {
     this.on('pause', this.togglePause.bind(this));
     this.on('hidden', () => this.hidden = true);
     this.on('visible', () => this.hidden = false);
+
+    this.emit('events:done');
   }
 
-  async load() {
-    await this.atlas.loadImage('vase', 'img/vase.png');
-    await this.atlas.loadImage('strategy', 'img/tileset.png');
-    await this.atlas.loadAtlas('data/vase.json', 'vase');
-    await this.atlas.loadAtlas('data/strategy.json', 'strategy');
+  async setupMap() {
+    //const response = await fetch('/data/strategy_mapping.json');
+    //const tileIds = await response.json();
+    const tileIds = this.atlas.getMapping();
+    this.view.createLayer('background', 0, tileIds, 'strategy');
+    this.view.tilemap.editLayer('background', () => Math.floor(Math.random() * 4 + 1));
+    this.view.updateLayer('background');
+    this.view.createLayer('foreground', 1, tileIds, 'strategy');
+    this.view.tilemap.editLayer('foreground', () => Math.floor(Math.random()*8 + 1));
+    this.view.updateLayer('foreground');
+    this.view.updateView(['background', 'foreground']);
+    this.view.render();
   }
 
   addEntity() {

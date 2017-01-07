@@ -1,53 +1,53 @@
 {
-  "dark-green": {
+  "dark_green": {
     "x": 0,
     "y": 0,
     "w": 16,
     "h": 16
   },
-  "light-green": {
+  "light_green": {
     "x": 16,
     "y": 0,
     "w": 16,
     "h": 16
   },
-  "dark-grass": {
+  "dark_grass": {
     "x": 32,
     "y": 0,
     "w": 16,
     "h": 16
   },
-  "light-grass": {
+  "light_grass": {
     "x": 48,
     "y": 0,
     "w": 16,
     "h": 16
   },
-  "trees1": {
+  "trees_1": {
     "x": 64,
     "y": 0,
     "w": 16,
     "h": 16
   },
-  "trees2": {
+  "trees_2": {
     "x": 80,
     "y": 0,
     "w": 16,
     "h": 16
   },
-  "trees3": {
+  "forest": {
     "x": 96,
     "y": 0,
     "w": 16,
     "h": 16
   },
-  "house1": {
+  "house_1": {
     "x": 0,
     "y": 16,
     "w": 16,
     "h": 16
   },
-  "house2": {
+  "house_2": {
     "x": 16,
     "y": 16,
     "w": 16,

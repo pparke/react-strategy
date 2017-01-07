@@ -86,6 +86,10 @@ export default class Atlas extends EventEmitter {
     return this.tiles.get(name);
   }
 
+  getMapping() {
+    return Array.from(this.tiles.keys());
+  }
+
   getIndex(key) {
     return this.tileIndex.indexOf(key);
   }

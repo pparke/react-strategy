@@ -33,7 +33,7 @@ export default class Tilemap {
         layer[i] = fn(layer[i], i, layer);
       }
     }
-    this.layers.[name] = layer;
+    this.layers[name] = layer;
   }
 
   /**
