@@ -15,6 +15,8 @@ export default class View {
     this.viewport.canvas.width = viewport.width;
     this.viewport.canvas.height = viewport.height;
     this.viewport.ctx = this.viewport.canvas.getContext('2d');
+    this.width = viewport.width;
+    this.height = viewport.height;
     this.position = {
       x: this.mapWidth*this.tileWidth/2,
       y: this.mapHeight*this.tileHeight/2
