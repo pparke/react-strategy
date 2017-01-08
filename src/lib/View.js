@@ -16,8 +16,8 @@ export default class View {
     this.viewport.canvas.height = viewport.height;
     this.viewport.ctx = this.viewport.canvas.getContext('2d');
     this.position = {
-      x: map.width/2,
-      y: map.width/2
+      x: this.mapWidth*this.tileWidth/2,
+      y: this.mapHeight*this.tileHeight/2
     }
 
     this._layerProto = {
@@ -25,9 +25,14 @@ export default class View {
       zIndex: 0,
       canvas: null,
       ctx: null,
-      tileIds: {},
+      tileIds: [],
       atlasKey: ''
     }
+  }
+
+  move(dx, dy) {
+    this.position.x += dx;
+    this.position.y += dy;
   }
 
   createLayer(name, zIndex, tileIds, atlasKey) {
@@ -59,12 +64,12 @@ export default class View {
     const width = this.tilemap.numTilesX;
 
     for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x ++) {
-        const tileX = x * this.tileWidth;
-        const tileY = y * this.tileHeight;
+      for (let x = 0; x < width; x++) {
         const tileIndex = this.tilemap.getAtCoords(layer.name, x, y);
         const tileName = layer.tileIds[tileIndex];
         const tile = this.atlas.getTile(tileName);
+        const tileX = x * this.tileWidth;
+        const tileY = y * this.tileHeight;
         this.drawImage(layer, tile, tileX, tileY);
       }
     }
@@ -72,8 +77,8 @@ export default class View {
 
   updateView(layers) {
     const { width, height } = this.viewport.canvas;
-    const x = this.position.x - (width / 2);
-    const y = this.position.y - (height / 2);
+    const x = this.position.x - Math.floor(width / 2);
+    const y = this.position.y - Math.floor(height / 2);
 
     layers = layers.map(l => this.layers[l]);
 
@@ -84,7 +89,7 @@ export default class View {
     Object.values(sortedLayers).forEach(layer => {
       //const imageData = layer.ctx.getImageData(x, y, width, height);
       //this.viewport.ctx.putImageData(imageData, 0, 0);
-      this.viewport.ctx.drawImage(layer.canvas, 0, 0);
+      this.viewport.ctx.drawImage(layer.canvas, x, y, width, height, 0, 0, width, height);
     });
   }
 

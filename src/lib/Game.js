@@ -91,6 +91,13 @@ export default class Game extends EventEmitter {
 
   setupEvents() {
     this.systems.input.on('pause', this.togglePause.bind(this));
+    this.systems.input.on('keydown', key => {
+      if (key === 'left') this.view.move(-10, 0);
+      if (key === 'right') this.view.move(10, 0);
+      if (key === 'down') this.view.move(0, 10);
+      if (key === 'up') this.view.move(0, -10);
+      this.view.updateView(['background', 'foreground']);
+    });
     this.on('pause', this.togglePause.bind(this));
     this.on('hidden', () => this.hidden = true);
     this.on('visible', () => this.hidden = false);
@@ -98,7 +105,7 @@ export default class Game extends EventEmitter {
     this.emit('events:done');
   }
 
-  async setupMap() {
+  setupMap() {
     //const response = await fetch('/data/strategy_mapping.json');
     //const tileIds = await response.json();
     const tileIds = this.atlas.getMapping();
@@ -109,7 +116,6 @@ export default class Game extends EventEmitter {
     this.view.tilemap.editLayer('foreground', () => Math.floor(Math.random()*8 + 1));
     this.view.updateLayer('foreground');
     this.view.updateView(['background', 'foreground']);
-    this.view.render();
   }
 
   addEntity() {
@@ -165,6 +171,8 @@ export default class Game extends EventEmitter {
    * The main update function, most game logic or system calls will go here
    */
   update() {
+    this.ctx.clearRect(0, 0, this.width, this.height);
+    this.view.render();
     for (let key in this.systems) {
       this.systems[key].update(this.entities);
     }

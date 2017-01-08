@@ -37,10 +37,12 @@ export default class Input extends EventEmitter {
 
   keyDown(k) {
     this.keys[k] = true;
+    this.emit('keydown', k);
   }
 
   keyUp(k) {
     this.keys[k] = false;
+    this.emit('keyup', k);
   }
 
   update(entities) {
