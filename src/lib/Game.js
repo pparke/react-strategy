@@ -16,9 +16,9 @@ export default class Game extends EventEmitter {
     this.height = height;
     this.ctx = ctx;
 
-    this.time = 0;
-    this.fps = 60;
-    this.lastUpdate = 0;
+    this.currentSample = 0;
+    this.frameSum = 0;
+    this.lastFrame = new Date().getTime();
     this.paused = true;
     this.hidden = false;
 
@@ -82,8 +82,12 @@ export default class Game extends EventEmitter {
   }
 
   setupEntities() {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 10; i++) {
       this.createVase();
+    }
+
+    for (let i = 0; i < this.view.tilemap.numTiles; i++) {
+      this.createTile(this.view.tilemap.offsetToCoord(i));
     }
 
     this.emit('entities:done');
@@ -140,10 +144,23 @@ export default class Game extends EventEmitter {
     ent.size.width = 16;
     ent.size.height = 16;
     ent.image.key = 'vase';
-    ent.on('outOfBounds', function(bounds) {
-      if (this.position.x < bounds.x || this.position.x > bounds.x + bounds.width) this.velocity.x *= -1;
-      if (this.position.y < bounds.y || this.position.y > bounds.y + bounds.height) this.velocity.y *= -1;
-    })
+    Entity.addEvent(ent, 'outOfBounds', 'reverse');
+  }
+
+  createTile({ x, y }) {
+    const ent = this.addEntity();
+    Entity.addComponent(ent, 'position');
+    Entity.addComponent(ent, 'terrain');
+    Entity.addComponent(ent, 'population');
+
+    ent.position.x = x;
+    ent.position.y = y;
+    ent.terrain.fertility = Math.random();
+    ent.terrain.hostility = Math.random();
+    ent.population.size = Math.random() > 0.98 ? Math.floor(Math.random()*300) : 0;
+    ent.population.deathRate = (ent.terrain.hostility - ent.terrain.fertility) * 0.1;
+    ent.population.birthRate = (ent.terrain.fertility - ent.terrain.hostility) * 0.1;
+    // TODO: add event for tile change
   }
 
 
@@ -183,26 +200,24 @@ export default class Game extends EventEmitter {
    */
   tick() {
     if (this.paused || this.hidden) {
+      this.currentSample = 0;
+      this.frameSum = 0;
+      this.lastFrame = 0;
       return;
     }
 
     // frame timing
     const now = new Date().getTime();
-    const dt = now - this.time;
-    const rate = 1000/this.fps;
+    this.frameSum += now - this.lastFrame;
+    this.lastFrame = now;
 
-    // fps calculation
-    const ut = now - this.lastUpdate
-    const currentFPS = Math.floor(1000/ut);
-
-    if (true /*dt > rate*/) {
-      this.time = now - (this.time % rate);
-      this.update();
-    }
+    this.update();
     // update the FPS counter
-    if (ut > 500) {
-      this.lastUpdate = now;
-      this.emit('FPS', Math.floor(dt));
+    if (++this.currentSample >= 100) {
+      const frameAvg = Math.floor(this.frameSum / 100);
+      this.currentSample = 0;
+      this.frameSum = 0;
+      this.emit('FPS', Math.floor(1/((frameAvg)/1000)));
     }
     window.requestAnimationFrame(this.tick.bind(this));
   }

@@ -14,6 +14,12 @@ export default class Tilemap {
     return (x + (y * this.numTilesX));
   }
 
+  offsetToCoord(offset) {
+    const x = offset % this.numTilesX;
+    const y = Math.floor(offset / this.numTileX);
+    return { x, y };
+  }
+
   getAtCoords(layerName, x, y) {
     const offset = this.coordToOffset(x, y);
     return this.layers[layerName][offset];

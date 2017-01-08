@@ -1,5 +1,6 @@
 import uuid from 'uuid/v1';
 import * as components from './components';
+import behaviors from './behaviors';
 
 export default class Entity {
   constructor() {
@@ -18,6 +19,14 @@ export default class Entity {
 
   static hasComponents(entity, components) {
     return components.every(c => entity[c]);
+  }
+
+  static addEvent(entity, key, behavior) {
+    const fn = behaviors[behavior];
+    if (!fn) {
+      throw new Error('No such behavior:', key);
+    }
+    entity.on(key, fn);
   }
 
   on(key, handler) {

@@ -8,6 +8,7 @@ export default class Physics extends EventEmitter {
     this.ready = false;
     this.bounds = bounds;
     this.required = ['position', 'size', 'velocity', 'body'];
+    this.entities = [];
   }
 
   setup() {
@@ -32,12 +33,17 @@ export default class Physics extends EventEmitter {
       const { x, y, width, height } = this.bounds;
       const { x: ex, y: ey } = ent.position;
       const { width: ew, height: eh } = ent.size;
-      if (ex < x ||
-          ex + ew > x + width ||
-          ey < y ||
-          ey + eh > y + height) {
-            ent.emit('outOfBounds', this.bounds);
-          }
+      let xOut = false;
+      let yOut = false;
+      if (ex < x || ex + ew > x + width) {
+        xOut = true;
+      }
+      if (ey < y || ey + eh > y + height) {
+        yOut = true;
+      }
+      if (xOut || yOut) {
+        ent.emit('outOfBounds', xOut, yOut);
+      }
     }
   }
 

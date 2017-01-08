@@ -13,6 +13,7 @@ export default class Input extends EventEmitter {
     this.keys = {};
 
     this.required = ['controller', 'velocity'];
+    this.entities = [];
   }
 
   setup(ctx) {

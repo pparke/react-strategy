@@ -29,3 +29,19 @@ export const body = {
 export const controller = {
 
 }
+
+export const population = {
+  type: 'human',
+  size: 0,
+  deathRate: 0.01,
+  birthRate: 0.02,
+  emigrationRate: 0.001
+}
+
+export const terrain = {
+  type: 'grass',
+  tileIndex: 1,
+  movementDifficulty: 0,
+  fertility: 1,
+  hostility: 1
+}

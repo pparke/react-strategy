@@ -1,5 +1,6 @@
 import EventEmitter from 'events';
 import Atlas from '../Atlas';
+import Entity from '../Entity';
 
 export default class Render extends EventEmitter {
   constructor(ctx, atlas) {
@@ -48,6 +49,9 @@ export default class Render extends EventEmitter {
 
   update(entities) {
     for (const ent of Object.values(entities)) {
+      if (!Entity.hasComponents(ent, ['image', 'position', 'size'])) {
+        continue;
+      }
       const { image: { key }, position: { x, y }, size: { width, height } } = ent;
       this.drawImage(key, x - width/2, y - height/2);
     }
