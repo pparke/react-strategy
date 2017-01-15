@@ -47,11 +47,8 @@ export default class Render extends EventEmitter {
                       );
   }
 
-  update(entities) {
-    for (const ent of Object.values(entities)) {
-      if (!Entity.hasComponents(ent, ['image', 'position', 'size'])) {
-        continue;
-      }
+  update() {
+    for (const ent of this.entities) {
       const { image: { key }, position: { x, y }, size: { width, height } } = ent;
       this.drawImage(key, x - width/2, y - height/2);
     }

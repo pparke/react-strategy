@@ -16,15 +16,12 @@ export default class Physics extends EventEmitter {
     this.emit('go', this.name);
   }
 
-  update(entities) {
-    for (const key in entities) {
-      const ent = entities[key];
-      if (Entity.hasComponents(ent, ['position', 'size', 'velocity', 'body'])) {
-        ent.position.x += ent.velocity.x;
-        ent.position.y += ent.velocity.y;
+  update() {
+    for (const ent of this.entities) {
+      ent.position.x += ent.velocity.x;
+      ent.position.y += ent.velocity.y;
 
-        this.checkBounds(ent);
-      }
+      this.checkBounds(ent);
     }
   }
 

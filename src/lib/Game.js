@@ -3,6 +3,7 @@ import Audio from './Audio';
 import Atlas from './Atlas';
 import View from './View';
 import World from './World';
+import Tilemap from './Tilemap';
 
 export default class Game extends EventEmitter {
   constructor({ width, height, ctx, tilesetImage } = {}) {
@@ -20,8 +21,9 @@ export default class Game extends EventEmitter {
 
     this.sound = new Audio();
     this.atlas = new Atlas();
-    this.view = new View(this.ctx, this.atlas, { width: 16, height: 16 }, { width: 100, height: 100 }, { width, height });
-    this.world = new World(this.ctx, this.atlas, this.view);
+    this.tilemap = new Tilemap(100, 100, 16, 16);
+    this.view = new View(this.ctx, this.atlas, this.tilemap, { width, height });
+    this.world = new World(this.ctx, this.atlas, this.view, this.tilemap);
 
     this.world.on('pause', this.togglePause.bind(this));
 
@@ -41,13 +43,13 @@ export default class Game extends EventEmitter {
       },
       {
         type: 'atlas',
-        name: 'vase',
-        file: 'data/vase.json'
+        name: 'strategy',
+        file: 'data/strategy.json'
       },
       {
         type: 'atlas',
-        name: 'strategy',
-        file: 'data/strategy.json'
+        name: 'vase',
+        file: 'data/vase.json'
       }
     ]);
 

@@ -1,14 +1,17 @@
 import Tilemap from './Tilemap';
 
+// TODO: refactor to separate tile and layer logic into the tilemap class
+// tilemap class should deal with a flat array of tile objects since we
+// don't need to rapidly iterate over them and draw every frame anymore
 export default class View {
-  constructor(ctx, atlas, tile, map, viewport) {
+  constructor(ctx, atlas, tilemap, viewport) {
     this.ctx = ctx;
     this.atlas = atlas;
-    this.tileWidth = tile.width;
-    this.tileHeight = tile.height;
-    this.mapWidth = map.width;
-    this.mapHeight = map.height;
-    this.tilemap = new Tilemap(map.width, map.height);
+    this.tileWidth = tilemap.tileWidth;
+    this.tileHeight = tilemap.tileHeight;
+    this.mapWidth = tilemap.numTilesX;
+    this.mapHeight = tilemap.numTilesY;
+    this.tilemap = tilemap;
     this.layers = {};
     this.viewport =  {};
     this.viewport.canvas = document.createElement('canvas');
@@ -21,14 +24,14 @@ export default class View {
       x: this.mapWidth*this.tileWidth/2,
       y: this.mapHeight*this.tileHeight/2
     }
+    this.needsUpdate = false;
 
     this._layerProto = {
       name: '',
       zIndex: 0,
       canvas: null,
       ctx: null,
-      tileIds: [],
-      atlasKey: ''
+      dirty: false
     }
   }
 
@@ -37,13 +40,15 @@ export default class View {
     this.position.y += dy;
   }
 
-  createLayer(name, zIndex, tileIds, atlasKey) {
-    const layer = Object.assign({}, this._layerProto, { name, zIndex, tileIds, atlasKey });
+  /**
+   * TODO: have tilemap layers be created independently
+   */
+  createLayer(name, zIndex) {
+    const layer = Object.assign({}, this._layerProto, { name, zIndex });
     layer.canvas = document.createElement('canvas');
     layer.canvas.width = this.mapWidth * this.tileWidth;
     layer.canvas.height = this.mapHeight * this.tileHeight;
     layer.ctx = layer.canvas.getContext('2d');
-    this.tilemap.createLayer(name);
     this.layers[name] = layer;
   }
 
@@ -53,27 +58,24 @@ export default class View {
     return {x, y};
   }
 
+  updateTile(key, x, y) {
+    const viewLayer = this.layers[key];
+    const tile = this.tilemap.getAtCoords(key, x, y);
+    const tileImage = this.atlas.getTile(tile.image.key);
+    this.drawImage(viewLayer, tileImage, tile.position.x, tile.position.y);
+    this.needsUpdate = true;
+  }
+
   /**
    * Updates the given layer by rendering tiles based on the tilemap
    * layer that underpins it
    */
-  updateLayer(layer) {
-    if ('string' === typeof layer) {
-      layer = this.layers[layer];
-    }
-
-    const height = this.tilemap.numTilesY;
-    const width = this.tilemap.numTilesX;
-
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const tileIndex = this.tilemap.getAtCoords(layer.name, x, y);
-        const tileName = layer.tileIds[tileIndex];
-        const tile = this.atlas.getTile(tileName);
-        const tileX = x * this.tileWidth;
-        const tileY = y * this.tileHeight;
-        this.drawImage(layer, tile, tileX, tileY);
-      }
+  updateLayer(key) {
+    const viewLayer = this.layers[key];
+    const tileLayer = this.tilemap.layers[key];
+    for (const tile of tileLayer) {
+      const tileImage = this.atlas.getTile(tile.image.key);
+      this.drawImage(viewLayer, tileImage, tile.position.x, tile.position.y);
     }
   }
 
@@ -96,6 +98,18 @@ export default class View {
   }
 
   render() {
+    for (const layer of Object.values(this.layers)) {
+      if (layer.dirty) {
+        this.needsUpdate = true;
+        layer.dirty = false;
+        this.updateLayer(layer.name);
+      }
+    }
+    if (this.needsUpdate) {
+      this.needsUpdate = false;
+      this.updateView(Object.keys(this.layers));
+    }
+
     this.ctx.drawImage(this.viewport.canvas, 0, 0);
   }
 
@@ -115,8 +129,8 @@ export default class View {
                         tile.y,
                         tile.w,
                         tile.h,
-                        x,
-                        y,
+                        x * tile.w,
+                        y * tile.h,
                         tile.w,
                         tile.h
                       );
@@ -131,7 +145,7 @@ export default class View {
 
         image.onload = () => {
           // no longer need to read the blob, revoke it
-          url.revokeObjectURL(url);
+          URL.revokeObjectURL(url);
           // resolve to the image
           resolve(image);
         }

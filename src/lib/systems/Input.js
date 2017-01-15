@@ -46,22 +46,19 @@ export default class Input extends EventEmitter {
     this.emit('keyup', k);
   }
 
-  update(entities) {
-    for (const key in entities) {
-      const ent = entities[key];
-      if (Entity.hasComponents(ent, ['controller', 'velocity'])) {
-        if (this.keys['right']) {
-          ent.velocity.x += 0.01;
-        }
-        else if (this.keys['left']) {
-          ent.velocity.x -= 0.01;
-        }
-        if (this.keys['up']) {
-          ent.velocity.y -= 0.01;
-        }
-        else if (this.keys['down']) {
-          ent.velocity.y += 0.01;
-        }
+  update() {
+    for (const ent of this.entities) {
+      if (this.keys['right']) {
+        ent.velocity.x += 0.01;
+      }
+      else if (this.keys['left']) {
+        ent.velocity.x -= 0.01;
+      }
+      if (this.keys['up']) {
+        ent.velocity.y -= 0.01;
+      }
+      else if (this.keys['down']) {
+        ent.velocity.y += 0.01;
       }
     }
   }

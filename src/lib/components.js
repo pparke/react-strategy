@@ -16,6 +16,7 @@ export const size = {
 
 export const image = {
   tileset: {},
+  layer: '',
   key: ''
 };
 
@@ -35,13 +36,20 @@ export const population = {
   size: 0,
   deathRate: 0.01,
   birthRate: 0.02,
-  emigrationRate: 0.001
+  emigrationRate: 0.01
 }
 
 export const terrain = {
-  type: 'grass',
+  type: '',
   tileIndex: 1,
-  movementDifficulty: 0,
+  movementDifficulty: 0.2,
   fertility: 1,
   hostility: 1
+}
+
+export const edges = {
+  north: null,
+  south: null,
+  east: null,
+  west: null
 }
