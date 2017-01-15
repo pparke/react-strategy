@@ -102,7 +102,6 @@ export default class Tilemap {
     let s = offset + this.coordToOffset(0, 1);
     let w = offset + this.coordToOffset(-1, 0);
 
-
     const [north, east, south, west] = [n, e, s, w].map((dir) => {
       if (dir < 0) {
         dir = this.numTiles + dir;

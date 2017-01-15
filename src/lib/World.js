@@ -103,10 +103,43 @@ export default class World extends EventEmitter {
       Entity.addComponent(tile, 'terrain');
       Entity.addComponent(tile, 'population');
 
-      tile.image.key = 'empty';
       tile.terrain.fertility = Math.random();
       tile.terrain.hostility = Math.random();
       tile.terrain.movementDifficulty = Math.random();
+      switch (Math.floor(tile.terrain.movementDifficulty * 10)) {
+        case 0:
+          tile.image.key = 'empty';
+          break;
+        case 1:
+          tile.image.key = 'trees_1';
+          break;
+        case 2:
+          tile.image.key = 'trees_2';
+          break;
+        case 3:
+          tile.image.key = 'trees_3';
+          break;
+        case 4:
+          tile.image.key = 'hill_1';
+          break;
+        case 5:
+          tile.image.key = 'hill_2';
+          break;
+        case 6:
+          tile.image.key = 'lake_1';
+          break;
+        case 7:
+          tile.image.key = 'mountain_1';
+          break;
+        case 8:
+          tile.image.key = 'mountain_2';
+          break;
+        case 9:
+          tile.image.key = 'mountain_3';
+          break;
+      }
+
+
       tile.population.size = Math.random() > 0.90 ? Math.floor(Math.random()*300) : 0;
       tile.population.deathRate = (tile.terrain.hostility - tile.terrain.fertility) * 0.1;
       tile.population.birthRate = (tile.terrain.fertility - tile.terrain.hostility) * 0.1;
@@ -127,12 +160,16 @@ export default class World extends EventEmitter {
       if (key === 'up') this.view.move(0, -10);
       this.view.updateView(['background', 'foreground']);
     });
+    this.systems.input.on('zoomin', () => this.view.zoom(1));
+    this.systems.input.on('zoomout', () => this.view.zoom(-1));
 
     this.systems.population.on('mapUpdate', () => {
       this.view.dirty = true;
     });
 
     this.systems.population.on('tileUpdate', this.view.updateTile.bind(this.view));
+
+    this.ctx.canvas.addEventListener('click', this.view.handleClick.bind(this.view));
 
     this.emit('events:done');
   }

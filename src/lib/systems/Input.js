@@ -26,6 +26,8 @@ export default class Input extends EventEmitter {
     mousetrap.bind('down', () => { this.keyDown('down'); this.keyUp('up'); }, 'keydown');
     mousetrap.bind('down', () => { this.keyUp('down') }, 'keyup');
     mousetrap.bind('p', () => { this.emit('pause') });
+    mousetrap.bind('z', () => { this.emit('zoomin') });
+    mousetrap.bind('shift+z', () => { this.emit('zoomout')});
     //mousetrap.bind('p', this.togglePause.bind(this) );
     const canvas = this.ctx.canvas;
     canvas.addEventListener('touchstart', this.onTouchStart.bind(this), false);

@@ -38,20 +38,32 @@ export default class Population extends EventEmitter {
         this.emit('tileUpdate', ent.image.layer, ent.position.x, ent.position.y);
       }
       if (leave !== 0) {
-        const destination = Object.values(ent.edges).sort((a,b) => {
-          if (a.terrain.hostility < b.terrain.hostility) {
-            return 1;
-          }
-          if (a.terrain.hostility > b.terrain.hostility) {
-            return -1;
-          }
-          return 0;
-        })[0];
+        const destination = this.rankNeighbours(Object.values(ent.edges))[0];
 
         destination.population.size += 1;
         destination.emit('populationChange', destination.population.size);
 
       }
     }
+  }
+
+  rankNeighbours(tiles) {
+    const mapped = tiles.map((tile, index) => {
+      const { population: { size }, terrain: { hostility, fertility, movementDifficulty } } = tile;
+      let capacity = (fertility - hostility) * 100;
+      capacity = capacity > 0 ? capacity : 0;
+      let score = 1;
+      score -= (size/capacity);
+      score += (fertility - hostility);
+      score -= (movementDifficulty * 0.5);
+
+      return { score, index };
+    });
+
+    mapped.sort((a, b) => {
+      return +(a.score > b.score) || +(a.score === b.score) - 1;
+    });
+
+    return mapped.map(el => tiles[el.index]);
   }
 }

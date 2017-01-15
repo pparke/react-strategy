@@ -13,11 +13,14 @@ export default class View {
     this.mapHeight = tilemap.numTilesY;
     this.tilemap = tilemap;
     this.layers = {};
+
     this.viewport =  {};
     this.viewport.canvas = document.createElement('canvas');
     this.viewport.canvas.width = viewport.width;
     this.viewport.canvas.height = viewport.height;
     this.viewport.ctx = this.viewport.canvas.getContext('2d');
+    this.viewport.ctx.imageSmoothingEnabled = false;
+
     this.width = viewport.width;
     this.height = viewport.height;
     this.position = {
@@ -25,6 +28,7 @@ export default class View {
       y: this.mapHeight*this.tileHeight/2
     }
     this.needsUpdate = false;
+    this.scale = 1;
 
     this._layerProto = {
       name: '',
@@ -38,6 +42,36 @@ export default class View {
   move(dx, dy) {
     this.position.x += dx;
     this.position.y += dy;
+  }
+
+  zoom(amt) {
+    console.log('zooming', amt)
+    this.scale += amt;
+    if (this.scale < 1) {
+      this.scale = 1;
+      return;
+    }
+    if (amt > 0) {
+      this.viewport.ctx.scale(2, 2);
+    }
+    else {
+      this.viewport.ctx.scale(0.5, 0.5);
+    }
+  }
+
+  handleClick(event) {
+    const canvas = event.target;
+    const elemLeft = canvas.offsetLeft;
+    const elemTop = canvas.offsetTop;
+    const { width, height } = this.viewport.canvas;
+    const x = event.pageX - elemLeft + this.position.x - width/2;
+    const y = event.pageY - elemTop + this.position.y - height/2;
+    const tileX = Math.floor(x/16);
+    const tileY = Math.floor(y/16);
+    this.layers.foreground.ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
+    this.layers.foreground.ctx.fillRect(tileX*16, tileY*16, 16, 16);
+    console.log(x, y);
+    console.log(Math.floor(x/16), Math.floor(y/16));
   }
 
   /**
@@ -62,7 +96,7 @@ export default class View {
     const viewLayer = this.layers[key];
     const tile = this.tilemap.getAtCoords(key, x, y);
     const tileImage = this.atlas.getTile(tile.image.key);
-    this.drawImage(viewLayer, tileImage, tile.position.x, tile.position.y);
+    this.drawImage(viewLayer, tileImage, tile.position.x, tile.position.y, true);
     this.needsUpdate = true;
   }
 
@@ -77,6 +111,7 @@ export default class View {
       const tileImage = this.atlas.getTile(tile.image.key);
       this.drawImage(viewLayer, tileImage, tile.position.x, tile.position.y);
     }
+    this.needsUpdate = true;
   }
 
   updateView(layers) {
@@ -98,13 +133,6 @@ export default class View {
   }
 
   render() {
-    for (const layer of Object.values(this.layers)) {
-      if (layer.dirty) {
-        this.needsUpdate = true;
-        layer.dirty = false;
-        this.updateLayer(layer.name);
-      }
-    }
     if (this.needsUpdate) {
       this.needsUpdate = false;
       this.updateView(Object.keys(this.layers));
@@ -120,19 +148,34 @@ export default class View {
    * @param {number} x - the x coordinate (in screen space) to draw the tile
    * @param {number} y - the y coordinate (in screen space) to draw the tile
    */
-  drawImage(layer, tile, x, y) {
+  drawImage(layer, tile, x, y, clear = false) {
+    const source = {
+      x: tile.x,
+      y: tile.y,
+      w: tile.w,
+      h: tile.h
+    };
+    const dest = {
+      x: x * tile.w,
+      y: y * tile.h,
+      w: tile.w,
+      h: tile.h
+    }
+    if (clear) {
+      layer.ctx.clearRect(dest.x, dest.y, tile.w, tile.h);
+    }
     // Nine arguments: the element, source (x,y) coordinates, source width and
     // height (for cropping), destination (x,y) coordinates, and destination width
     // and height (resize).
     layer.ctx.drawImage( tile.tileset,
-                        tile.x,
-                        tile.y,
-                        tile.w,
-                        tile.h,
-                        x * tile.w,
-                        y * tile.h,
-                        tile.w,
-                        tile.h
+                        source.x,
+                        source.y,
+                        source.w,
+                        source.h,
+                        dest.x,
+                        dest.y,
+                        dest.w,
+                        dest.h
                       );
   }
 
