@@ -140,9 +140,10 @@ export default class World extends EventEmitter {
       }
 
 
-      tile.population.size = Math.random() > 0.90 ? Math.floor(Math.random()*300) : 0;
-      tile.population.deathRate = (tile.terrain.hostility - tile.terrain.fertility) * 0.1;
-      tile.population.birthRate = (tile.terrain.fertility - tile.terrain.hostility) * 0.1;
+      tile.terrain.capacity = Math.floor(Math.random() * 500);
+      tile.population.size = Math.random() > 0.90 ? Math.floor(Math.random() * tile.terrain.capacity) : 0;
+      tile.population.deathRate = Math.random();
+      tile.population.birthRate = Math.random();
       tile.population.emigrationRate = tile.terrain.hostility * tile.terrain.movementDifficulty * 0.1;
       // TODO: add event for tile change
       Entity.addEvent(tile, 'populationChange', 'updateTileOccupation');

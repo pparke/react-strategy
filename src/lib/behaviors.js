@@ -6,6 +6,9 @@ export default {
     if (y) this.velocity.y *= -1;
   },
   updateTileOccupation(size) {
+    if (size === 0) {
+      this.image.key = 'empty';
+    }
     if (size > 0) {
       this.image.key = 'house_1';
     }

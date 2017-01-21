@@ -14,12 +14,18 @@ function setMessage(state, message) {
   return state.set('messages', messages.push(message));
 }
 
+function setInspector(state, inspector) {
+  return state.set('inspector', inspector);
+}
+
 export default function(state = Map(), action) {
   switch(action.type) {
     case 'SET_STATE':
       return setState(state, action.state);
     case 'SET_MESSAGE':
       return setMessage(state, action.message);
+    case 'SET_INSPECTOR':
+      return setInspector(state, action.inspector);
   }
   return state;
 }

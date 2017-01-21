@@ -31,11 +31,14 @@ export default class Tilemap {
 
   createTile(ent, x, y) {
     ent.constructor.addComponent(ent, 'image');
+    ent.constructor.addComponent(ent, 'size');
     ent.constructor.addComponent(ent, 'position');
     ent.constructor.addComponent(ent, 'edges');
 
     ent.position.x = x;
     ent.position.y = y;
+    ent.size.width = this.tileWidth;
+    ent.size.height = this.tileHeight;
 
     return ent;
   }
@@ -104,10 +107,10 @@ export default class Tilemap {
 
     const [north, east, south, west] = [n, e, s, w].map((dir) => {
       if (dir < 0) {
-        dir = this.numTiles + dir;
+        dir = (this.numTiles - 1) + dir;
       }
-      else if (dir > this.numTiles) {
-        dir = dir % this.numTiles;
+      else if (dir > (this.numTiles - 1)) {
+        dir = dir % (this.numTiles - 1);
       }
       return layer[dir];
     });

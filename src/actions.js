@@ -12,3 +12,10 @@ export function setMessage(message) {
     message
   }
 }
+
+export function setInspector(inspector) {
+  return {
+    type: 'SET_INSPECTOR',
+    inspector
+  }
+}

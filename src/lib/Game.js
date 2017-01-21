@@ -61,6 +61,10 @@ export default class Game extends EventEmitter {
     this.on('pause', this.togglePause.bind(this));
     this.on('hidden', () => this.hidden = true);
     this.on('visible', () => this.hidden = false);
+    this.view.on('inspect', (inspector) => {
+      console.log('game inspect', inspector)
+      this.emit('inspect', inspector)
+    });
 
     this.emit('events:done');
   }

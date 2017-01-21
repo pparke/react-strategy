@@ -44,7 +44,8 @@ export const terrain = {
   tileIndex: 1,
   movementDifficulty: 0.2,
   fertility: 1,
-  hostility: 1
+  hostility: 1,
+  capacity: 1
 }
 
 export const edges = {

@@ -15,7 +15,7 @@ canvas {
 }
 
 .display {
-  margin: 0 auto;
+  /*margin: 0 auto;*/
 }
 
 .invisible {
@@ -26,5 +26,12 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.row-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
   min-height: 500px;
 }

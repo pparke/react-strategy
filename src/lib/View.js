@@ -1,10 +1,12 @@
 import Tilemap from './Tilemap';
+import EventEmitter from 'events';
 
 // TODO: refactor to separate tile and layer logic into the tilemap class
 // tilemap class should deal with a flat array of tile objects since we
 // don't need to rapidly iterate over them and draw every frame anymore
-export default class View {
+export default class View extends EventEmitter {
   constructor(ctx, atlas, tilemap, viewport) {
+    super();
     this.ctx = ctx;
     this.atlas = atlas;
     this.tileWidth = tilemap.tileWidth;
@@ -70,8 +72,11 @@ export default class View {
     const tileY = Math.floor(y/16);
     this.layers.foreground.ctx.fillStyle = 'rgba(255, 255, 0, 0.5)';
     this.layers.foreground.ctx.fillRect(tileX*16, tileY*16, 16, 16);
-    console.log(x, y);
-    console.log(Math.floor(x/16), Math.floor(y/16));
+    const tile = this.tilemap.getAtCoords('foreground', tileX, tileY);
+    this.emit('inspect', {
+      title: tile.image.key,
+      image: this.tileToImage(tile)
+    });
   }
 
   /**
@@ -177,6 +182,28 @@ export default class View {
                         dest.w,
                         dest.h
                       );
+  }
+
+  tileToImage(tile) {
+    const { size: { width, height }, position: { x, y } } = tile;
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(this.viewport.canvas, x, y, width, height, 0, 0, width, height);
+      console.log(this.viewport.canvas, x, y, width, height, 0, 0, width, height)
+
+      canvas.toBlob(blob => {
+        const src = URL.createObjectURL(blob);
+
+        resolve({
+          src,
+          onload: () => URL.revokeObjectURL(src)
+        });
+      });
+    });
   }
 
   saveLayerAsImage(layer) {

@@ -27,12 +27,16 @@ export default class Population extends EventEmitter {
       if (ent.population.size === 0) {
         continue;
       }
+      // update birthrate
+      ent.population.birthRate = this.calcBirthrate(ent);
       const { population: { deathRate, birthRate, emigrationRate }} = ent;
-      const birth = Math.random() < birthRate ? 1 : 0;
-      const death = Math.random() < deathRate ? -1 : 0;
-      const leave = Math.random() < emigrationRate ? -1 : 0;
-      const change = birth + death + leave;
+      const birthDeath = this.birthDeathChange(ent);
+      const leave = this.emigrationChange(ent);
+      const change = birthDeath + leave;
       ent.population.size += change;
+      if (ent.population.size < 0) {
+        ent.population.size = 0;
+      }
       if (change !== 0) {
         ent.emit('populationChange', ent.population.size);
         this.emit('tileUpdate', ent.image.layer, ent.position.x, ent.position.y);
@@ -47,16 +51,49 @@ export default class Population extends EventEmitter {
     }
   }
 
+  calcBirthrate(tile) {
+    const { population: { size }, terrain: { capacity, fertility, hostility } } = tile;
+    return fertility * (1 - (size / capacity / 2)) * (1 - hostility);
+  }
+
+  birthDeathChange(tile) {
+    const { population: { size, deathRate, birthRate, emigrationRate }, terrain: { capacity } } = tile;
+    let change = 0;
+
+    if (Math.random() < birthRate * (1 - size / capacity / 2)) {
+      change += 1;
+    }
+    if (Math.random() < deathRate * (1 + birthRate * size / capacity / deathRate / 2)) {
+      change -= 1;
+    }
+
+    return change;
+  }
+
+  emigrationChange(tile) {
+    const { population: { size, emigrationRate }, terrain: { capacity, hostility } } = tile;
+    let change = 0;
+
+    // TODO: come up with a better parameter than hostility
+    if (Math.random() < emigrationRate * (1 + hostility * size / capacity / emigrationRate / 2)) {
+      change -= 1;
+    }
+
+    return change;
+  }
+
+  habitabilityScore(tile) {
+    const { population: { size }, terrain: { hostility, fertility, movementDifficulty, capacity } } = tile;
+    let score = 1;
+    score -= (size/capacity);
+    score += (fertility - hostility);
+    score -= (movementDifficulty * 0.5);
+    return score;
+  }
+
   rankNeighbours(tiles) {
     const mapped = tiles.map((tile, index) => {
-      const { population: { size }, terrain: { hostility, fertility, movementDifficulty } } = tile;
-      let capacity = (fertility - hostility) * 100;
-      capacity = capacity > 0 ? capacity : 0;
-      let score = 1;
-      score -= (size/capacity);
-      score += (fertility - hostility);
-      score -= (movementDifficulty * 0.5);
-
+      const score = this.habitabilityScore(tile);
       return { score, index };
     });
 

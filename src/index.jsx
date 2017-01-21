@@ -2,12 +2,13 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './components/App';
 import { DisplayContainer } from './components/Display';
+import { SidebarContainer } from './components/Sidebar';
 import Game from './lib/Game';
 import { onHidden } from './lib/util';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 import reducer from './reducer';
-import { setState, setMessage } from './actions';
+import { setState, setMessage, setInspector } from './actions';
 import { fromJS, List, Map } from 'immutable';
 
 const store = createStore(reducer);
@@ -55,6 +56,11 @@ function setupGame(ctx) {
     game.emit('pause');
   });
 
+  game.on('inspect', (inspector) => {
+    console.log('got inspector', inspector)
+    store.dispatch(setInspector(fromJS(inspector)));
+  });
+
   game.on('FPS', (fps) => {
     store.dispatch(setMessage(
       fromJS({
@@ -73,7 +79,10 @@ function setupGame(ctx) {
 ReactDOM.render(
   <Provider store={store}>
     <App>
-      <DisplayContainer width={ 500 } height={ 400 } canvasDidMount={ setupGame } />,
+      <div className="row-container">
+      <DisplayContainer width={ 500 } height={ 400 } canvasDidMount={ setupGame } />
+      <SidebarContainer height={ 400 } />
+      </div>
     </App>
   </Provider>,
   document.getElementById('app')
